@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 400" width="900" height="400"
+     font-family="Georgia, 'Times New Roman', serif" role="img"
+     aria-label="Lifecycle of a POST /predict request: the browser posts JSON, Pydantic validates it against the trained feature schema, the predictor builds a one-row frame, the saved pipeline cleans and imputes it, the forest scores it, and the positive-class probability is compared with the stored threshold before the response is returned.">
+  <title>Lifecycle of a prediction request</title>
+  <defs>
+    <marker id="rl-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#30363d"/>
+    </marker>
+    <marker id="rl-err" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#B5483F"/>
+    </marker>
+  </defs>
+  <rect width="900" height="400" fill="#ffffff"/>
+
+  <!-- happy path boxes -->
+  <g stroke="#30363d" stroke-width="1.2">
+    <rect x="18"  y="56" width="150" height="74" rx="3" fill="#E4EDF7"/>
+    <rect x="202" y="56" width="150" height="74" rx="3" fill="#ffffff"/>
+    <rect x="386" y="56" width="150" height="74" rx="3" fill="#ffffff"/>
+    <rect x="570" y="56" width="150" height="74" rx="3" fill="#E2F2E7"/>
+    <rect x="754" y="56" width="128" height="74" rx="3" fill="#FCF2D6"/>
+  </g>
+
+  <g text-anchor="middle">
+    <text x="93"  y="80"  font-size="13" font-weight="bold" fill="#161616">1 · Browser</text>
+    <text x="93"  y="100" font-size="11.5" fill="#444">POST /api/predict</text>
+    <text x="93"  y="118" font-size="11" fill="#5c5c5c">10 JSON keys</text>
+
+    <text x="277" y="80"  font-size="13" font-weight="bold" fill="#161616">2 · Pydantic</text>
+    <text x="277" y="100" font-size="11.5" fill="#444">range, type, finite,</text>
+    <text x="277" y="118" font-size="11.5" fill="#444">no unknown fields</text>
+
+    <text x="461" y="80"  font-size="13" font-weight="bold" fill="#161616">3 · Predictor</text>
+    <text x="461" y="100" font-size="11.5" fill="#444">one-row DataFrame</text>
+    <text x="461" y="118" font-size="11.5" fill="#444">columns in train order</text>
+
+    <text x="645" y="80"  font-size="13" font-weight="bold" fill="#161616">4 · Pipeline</text>
+    <text x="645" y="100" font-size="11.5" fill="#444">clean &#8594; impute</text>
+    <text x="645" y="118" font-size="11.5" fill="#444">&#8594; forest</text>
+
+    <text x="818" y="80"  font-size="13" font-weight="bold" fill="#161616">5 · Threshold</text>
+    <text x="818" y="100" font-size="11.5" fill="#444">p&#770; &#8805; 0.2302</text>
+    <text x="818" y="118" font-size="11" fill="#5c5c5c">from metadata</text>
+  </g>
+
+  <g stroke="#30363d" stroke-width="1.4" fill="none" marker-end="url(#rl-arrow)">
+    <path d="M170 93 L200 93"/>
+    <path d="M354 93 L384 93"/>
+    <path d="M538 93 L568 93"/>
+    <path d="M722 93 L752 93"/>
+  </g>
+
+  <!-- class-order safeguard -->
+  <rect x="540" y="168" width="342" height="66" rx="3" fill="#F6F7F8" stroke="#8a94a0" stroke-width="1"/>
+  <text x="556" y="188" font-size="12" font-weight="bold" fill="#161616">Positive class looked up, never assumed</text>
+  <text x="556" y="207" font-family="Consolas, monospace" font-size="11" fill="#161616">predict_proba[:, classes_.index(1)]</text>
+  <text x="556" y="224" font-size="11.5" fill="#444">column order cannot silently invert it</text>
+  <path d="M645 132 L645 166" stroke="#8a94a0" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+
+  <!-- response -->
+  <rect x="18" y="258" width="500" height="122" rx="3" fill="#ffffff" stroke="#30363d" stroke-width="1.2"/>
+  <text x="34" y="280" font-size="13" font-weight="bold" fill="#2F5D8C">200 · response body</text>
+  <g font-family="Consolas, monospace" font-size="11.5" fill="#161616">
+    <text x="34" y="302">default_probability   0.0128</text>
+    <text x="34" y="320">predicted_class       0</text>
+    <text x="34" y="338">classification_threshold  0.2302</text>
+    <text x="34" y="356">risk_band             "Low"</text>
+  </g>
+  <text x="300" y="302" font-size="11" fill="#5c5c5c">the estimate</text>
+  <text x="300" y="320" font-size="11" fill="#5c5c5c">derived from the threshold</text>
+  <text x="300" y="338" font-size="11" fill="#5c5c5c">so the caller can re-derive it</text>
+  <text x="300" y="356" font-size="11" fill="#5c5c5c">display bucket only</text>
+
+  <!-- error paths -->
+  <rect x="540" y="258" width="342" height="122" rx="3" fill="#FAE2E2" stroke="#B5483F" stroke-width="1.2"/>
+  <text x="556" y="280" font-size="13" font-weight="bold" fill="#B5483F">Failure paths</text>
+  <g font-size="11.5" fill="#161616">
+    <text x="556" y="302"><tspan font-weight="bold">422</tspan> — bad field: out of range, non-numeric,</text>
+    <text x="556" y="319">non-finite, missing, or unknown key.</text>
+    <text x="556" y="341"><tspan font-weight="bold">503</tspan> — no model artifact loaded; /health</text>
+    <text x="556" y="358">reports the reason instead of crashing.</text>
+  </g>
+
+  <path d="M277 132 L277 200 L300 200" stroke="#B5483F" stroke-width="1.2" stroke-dasharray="4 3" fill="none" marker-end="url(#rl-err)"/>
+  <text x="312" y="204" font-size="11" fill="#B5483F">invalid &#8594; 422</text>
+
+  <path d="M818 132 L818 166" stroke="#30363d" stroke-width="1.3" fill="none" marker-end="url(#rl-arrow)"/>
+  <path d="M818 236 L818 256" stroke="#30363d" stroke-width="1.3" fill="none" marker-end="url(#rl-arrow)"/>
+  <path d="M268 256 L268 232 L93 232 L93 134" stroke="#30363d" stroke-width="1.3" fill="none" marker-end="url(#rl-arrow)"/>
+</svg>

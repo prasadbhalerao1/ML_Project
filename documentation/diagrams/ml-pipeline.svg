@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 340" width="900" height="340"
+     font-family="Georgia, 'Times New Roman', serif" role="img"
+     aria-label="Training pipeline: load the labelled CSV, clean implausible values, split 60/20/20, fit candidates on train, select on validation, refit on train plus validation, then score the test split once and save the artifact.">
+  <title>Training pipeline</title>
+  <defs>
+    <marker id="p-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#30363d"/>
+    </marker>
+  </defs>
+  <rect width="900" height="340" fill="#ffffff"/>
+
+  <!-- stage boxes -->
+  <g stroke="#30363d" stroke-width="1.2">
+    <rect x="18"  y="60" width="128" height="96" rx="3" fill="#E4EDF7"/>
+    <rect x="174" y="60" width="128" height="96" rx="3" fill="#E4EDF7"/>
+    <rect x="330" y="60" width="128" height="96" rx="3" fill="#E4EDF7"/>
+    <rect x="486" y="60" width="128" height="96" rx="3" fill="#FCF2D6"/>
+    <rect x="642" y="60" width="128" height="96" rx="3" fill="#FCF2D6"/>
+    <rect x="798" y="60" width="84"  height="96" rx="3" fill="#FAE2E2" stroke="#B5483F" stroke-width="1.3"/>
+  </g>
+
+  <g text-anchor="middle" fill="#161616">
+    <text x="82"  y="84" font-size="13.5" font-weight="bold">1 · Load</text>
+    <text x="238" y="84" font-size="13.5" font-weight="bold">2 · Clean</text>
+    <text x="394" y="84" font-size="13.5" font-weight="bold">3 · Split</text>
+    <text x="550" y="84" font-size="13.5" font-weight="bold">4 · Compare</text>
+    <text x="706" y="84" font-size="13.5" font-weight="bold">5 · Threshold</text>
+    <text x="840" y="84" font-size="13.5" font-weight="bold" fill="#B5483F">6 · Test</text>
+  </g>
+
+  <g font-size="11.5" fill="#444" text-anchor="middle">
+    <text x="82"  y="106">cs-training.csv</text>
+    <text x="82"  y="124">150,000 rows</text>
+    <text x="82"  y="142">row index dropped</text>
+
+    <text x="238" y="106">96/98 codes and</text>
+    <text x="238" y="124">age &lt; 18 &#8594; missing</text>
+    <text x="238" y="142">median + indicator</text>
+
+    <text x="394" y="106">stratified</text>
+    <text x="394" y="124">60 / 20 / 20</text>
+    <text x="394" y="142">seed 42</text>
+
+    <text x="550" y="106">5 forests fitted</text>
+    <text x="550" y="124">on train</text>
+    <text x="550" y="142">ranked by PR-AUC</text>
+
+    <text x="706" y="106">max F1 on</text>
+    <text x="706" y="124">validation</text>
+    <text x="706" y="142">&#8594; 0.2302</text>
+
+    <text x="840" y="106">refit on</text>
+    <text x="840" y="124">train+val,</text>
+    <text x="840" y="142">score once</text>
+  </g>
+
+  <!-- flow arrows -->
+  <g stroke="#30363d" stroke-width="1.4" fill="none" marker-end="url(#p-arrow)">
+    <path d="M148 108 L172 108"/>
+    <path d="M304 108 L328 108"/>
+    <path d="M460 108 L484 108"/>
+    <path d="M616 108 L640 108"/>
+    <path d="M772 108 L796 108"/>
+  </g>
+
+  <!-- what each stage is allowed to see -->
+  <rect x="330" y="196" width="440" height="40" rx="3" fill="#E2F2E7" stroke="#30363d" stroke-width="1"/>
+  <text x="550" y="221" text-anchor="middle" font-size="12.5" fill="#161616">
+    Every fitted statistic — medians, model, threshold — comes from this data only
+  </text>
+  <g stroke="#30363d" stroke-width="1" stroke-dasharray="4 3" fill="none">
+    <path d="M394 158 L394 194"/>
+    <path d="M550 158 L550 194"/>
+    <path d="M706 158 L706 194"/>
+  </g>
+
+  <rect x="798" y="196" width="84" height="40" rx="3" fill="#FAE2E2" stroke="#B5483F" stroke-width="1"/>
+  <text x="840" y="214" text-anchor="middle" font-size="11.5" fill="#B5483F">held out</text>
+  <text x="840" y="230" text-anchor="middle" font-size="11.5" fill="#B5483F">until here</text>
+  <path d="M840 158 L840 194" stroke="#B5483F" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+
+  <!-- artifact outputs -->
+  <rect x="18" y="262" width="864" height="58" rx="3" fill="#F6F7F8" stroke="#8a94a0" stroke-width="1"/>
+  <text x="34" y="283" font-size="12.5" font-weight="bold" fill="#161616">Saved to backend/ml/artifacts/</text>
+  <text x="34" y="303" font-size="12" fill="#444">
+    <tspan font-family="Consolas, monospace" font-size="11.5">model.joblib</tspan> (the fitted pipeline) ·
+    <tspan font-family="Consolas, monospace" font-size="11.5">metadata.json</tspan> (features, class order, threshold, metrics, importances) ·
+    <tspan font-family="Consolas, monospace" font-size="11.5">demo_examples.json</tspan>
+  </text>
+</svg>

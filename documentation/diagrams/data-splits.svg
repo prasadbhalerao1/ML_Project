@@ -1,0 +1,66 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330"
+     font-family="Georgia, 'Times New Roman', serif" role="img"
+     aria-label="Data splits: 150,000 labelled rows divided 60/20/20 into train, validation and test, each keeping the 6.68 percent positive rate. Train fits the candidates, validation selects the configuration and the threshold, and test is scored exactly once.">
+  <title>Stratified 60/20/20 split and what each part is used for</title>
+  <defs>
+    <marker id="ds-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#30363d"/>
+    </marker>
+  </defs>
+  <rect width="900" height="330" fill="#ffffff"/>
+
+  <!-- source -->
+  <rect x="18" y="30" width="864" height="42" rx="3" fill="#E4EDF7" stroke="#30363d" stroke-width="1.2"/>
+  <text x="450" y="50" text-anchor="middle" font-size="14" font-weight="bold" fill="#161616">
+    cs-training.csv — 150,000 labelled borrowers
+  </text>
+  <text x="450" y="66" text-anchor="middle" font-size="11.5" fill="#5c5c5c">
+    6.68% positive · stratified so every part keeps that ratio
+  </text>
+
+  <g stroke="#30363d" stroke-width="1.3" fill="none" marker-end="url(#ds-arrow)">
+    <path d="M276 74 L276 104"/>
+    <path d="M564 74 L564 104"/>
+    <path d="M768 74 L768 104"/>
+  </g>
+
+  <!-- three splits, width proportional to size -->
+  <rect x="18"  y="106" width="500" height="72" rx="3" fill="#E2F2E7" stroke="#30363d" stroke-width="1.2"/>
+  <rect x="528" y="106" width="166" height="72" rx="3" fill="#FCF2D6" stroke="#30363d" stroke-width="1.2"/>
+  <rect x="704" y="106" width="178" height="72" rx="3" fill="#FAE2E2" stroke="#B5483F" stroke-width="1.3"/>
+
+  <g text-anchor="middle">
+    <text x="268" y="132" font-size="14" font-weight="bold" fill="#161616">Train — 60%</text>
+    <text x="268" y="152" font-size="12" fill="#444">90,000 rows · 6,016 positive</text>
+    <text x="268" y="170" font-size="11.5" fill="#5c5c5c">fits the candidate forests and the imputer medians</text>
+
+    <text x="611" y="132" font-size="14" font-weight="bold" fill="#161616">Validation — 20%</text>
+    <text x="611" y="152" font-size="12" fill="#444">30,000 · 2,005 pos.</text>
+    <text x="611" y="170" font-size="11.5" fill="#5c5c5c">picks config + threshold</text>
+
+    <text x="793" y="132" font-size="14" font-weight="bold" fill="#B5483F">Test — 20%</text>
+    <text x="793" y="152" font-size="12" fill="#444">30,000 · 2,005 pos.</text>
+    <text x="793" y="170" font-size="11.5" fill="#B5483F">scored exactly once</text>
+  </g>
+
+  <!-- refit band -->
+  <rect x="18" y="206" width="676" height="38" rx="3" fill="#F6F7F8" stroke="#8a94a0" stroke-width="1"/>
+  <text x="356" y="230" text-anchor="middle" font-size="12.5" fill="#161616">
+    The winning configuration is refitted on train + validation (120,000 rows) before the final score
+  </text>
+  <g stroke="#8a94a0" stroke-width="1" stroke-dasharray="4 3" fill="none">
+    <path d="M268 180 L268 204"/>
+    <path d="M611 180 L611 204"/>
+  </g>
+
+  <rect x="704" y="206" width="178" height="38" rx="3" fill="#ffffff" stroke="#B5483F" stroke-width="1"/>
+  <text x="793" y="230" text-anchor="middle" font-size="12" fill="#B5483F">never seen until this point</text>
+  <path d="M793 180 L793 204" stroke="#B5483F" stroke-width="1" stroke-dasharray="4 3" fill="none"/>
+
+  <!-- why stratify -->
+  <rect x="18" y="268" width="864" height="44" rx="3" fill="#ffffff" stroke="#8a94a0" stroke-width="1"/>
+  <text x="34" y="288" font-size="12.5" font-weight="bold" fill="#161616">Why stratify</text>
+  <text x="34" y="306" font-size="12" fill="#444">
+    At a 6.68% base rate an unstratified split could leave the parts with visibly different class ratios, which would make their metrics incomparable.
+  </text>
+</svg>

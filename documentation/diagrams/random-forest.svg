@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 900 330" width="900" height="330"
+     font-family="Georgia, 'Times New Roman', serif" role="img"
+     aria-label="How the forest predicts: the training set is bootstrapped 300 times, one tree is grown per sample, each tree reports the positive proportion in the leaf the borrower reaches, and the forest averages those proportions before comparing the mean with the decision threshold.">
+  <title>How a Random Forest produces a prediction</title>
+  <defs>
+    <marker id="rf-arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto">
+      <path d="M0 0 L10 5 L0 10 z" fill="#30363d"/>
+    </marker>
+  </defs>
+  <rect width="900" height="330" fill="#ffffff"/>
+
+  <!-- column headings -->
+  <g font-size="12" fill="#5c5c5c" text-anchor="middle">
+    <text x="78"  y="30">training data</text>
+    <text x="252" y="30">bootstrap samples</text>
+    <text x="430" y="30">decision trees</text>
+    <text x="585" y="30">leaf proportion</text>
+    <text x="745" y="30">forest average</text>
+    <text x="858" y="30">decision</text>
+  </g>
+
+  <!-- training data -->
+  <rect x="18" y="108" width="120" height="86" rx="3" fill="#E4EDF7" stroke="#30363d" stroke-width="1.2"/>
+  <text x="78" y="140" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#161616">Training</text>
+  <text x="78" y="160" text-anchor="middle" font-size="12" fill="#444">120,000 rows</text>
+  <text x="78" y="179" text-anchor="middle" font-size="11.5" fill="#5c5c5c">16 model inputs</text>
+
+  <!-- bootstrap samples -->
+  <g stroke="#30363d" stroke-width="1.2">
+    <rect x="186" y="52"  width="132" height="40" rx="3" fill="#ffffff"/>
+    <rect x="186" y="131" width="132" height="40" rx="3" fill="#ffffff"/>
+    <rect x="186" y="230" width="132" height="40" rx="3" fill="#ffffff"/>
+  </g>
+  <g font-size="12" fill="#161616" text-anchor="middle">
+    <text x="252" y="77">bootstrap 1</text>
+    <text x="252" y="156">bootstrap 2</text>
+    <text x="252" y="255">bootstrap 300</text>
+  </g>
+  <text x="252" y="204" text-anchor="middle" font-size="19" fill="#8a94a0">&#8942;</text>
+
+  <!-- trees -->
+  <g stroke="#30363d" stroke-width="1.2">
+    <rect x="382" y="46"  width="96" height="52" rx="3" fill="#E2F2E7"/>
+    <rect x="382" y="125" width="96" height="52" rx="3" fill="#E2F2E7"/>
+    <rect x="382" y="224" width="96" height="52" rx="3" fill="#E2F2E7"/>
+  </g>
+  <g stroke="#30363d" stroke-width="1.1" fill="#ffffff">
+    <path d="M430 60 L414 82 M430 60 L446 82"/>
+    <circle cx="430" cy="58" r="6"/><circle cx="414" cy="85" r="5"/><circle cx="446" cy="85" r="5"/>
+    <path d="M430 139 L414 161 M430 139 L446 161"/>
+    <circle cx="430" cy="137" r="6"/><circle cx="414" cy="164" r="5"/><circle cx="446" cy="164" r="5"/>
+    <path d="M430 238 L414 260 M430 238 L446 260"/>
+    <circle cx="430" cy="236" r="6"/><circle cx="414" cy="263" r="5"/><circle cx="446" cy="263" r="5"/>
+  </g>
+  <text x="430" y="204" text-anchor="middle" font-size="19" fill="#8a94a0">&#8942;</text>
+
+  <!-- leaf proportions -->
+  <g stroke-width="1.3">
+    <rect x="540" y="54"  width="90" height="38" rx="3" fill="#FAE2E2" stroke="#B5483F"/>
+    <rect x="540" y="133" width="90" height="38" rx="3" fill="#ffffff" stroke="#30363d"/>
+    <rect x="540" y="232" width="90" height="38" rx="3" fill="#FAE2E2" stroke="#B5483F"/>
+  </g>
+  <g font-size="14" font-weight="bold" text-anchor="middle">
+    <text x="585" y="79" fill="#B5483F">0.81</text>
+    <text x="585" y="158" fill="#161616">0.12</text>
+    <text x="585" y="257" fill="#B5483F">0.74</text>
+  </g>
+  <text x="585" y="204" text-anchor="middle" font-size="19" fill="#8a94a0">&#8942;</text>
+
+  <!-- mean -->
+  <rect x="686" y="120" width="118" height="80" rx="3" fill="#FCF2D6" stroke="#30363d" stroke-width="1.2"/>
+  <text x="745" y="148" text-anchor="middle" font-size="13.5" font-weight="bold" fill="#161616">mean</text>
+  <text x="745" y="170" text-anchor="middle" font-size="13" fill="#161616">= p&#770;</text>
+  <text x="745" y="189" text-anchor="middle" font-size="11" fill="#5c5c5c">not a majority vote</text>
+
+  <!-- decision -->
+  <rect x="824" y="120" width="60" height="80" rx="3" fill="#FAE2E2" stroke="#B5483F" stroke-width="1.3"/>
+  <text x="854" y="147" text-anchor="middle" font-size="12" font-weight="bold" fill="#B5483F">p&#770; &#8805;</text>
+  <text x="854" y="164" text-anchor="middle" font-size="12" font-weight="bold" fill="#B5483F">0.2302</text>
+  <text x="854" y="184" text-anchor="middle" font-size="10.5" fill="#444">delinquent</text>
+
+  <!-- arrows -->
+  <g stroke="#30363d" stroke-width="1.3" fill="none" marker-end="url(#rf-arrow)">
+    <path d="M140 140 L184 74"/>
+    <path d="M140 151 L184 151"/>
+    <path d="M140 162 L184 248"/>
+    <path d="M320 72  L380 72"/>
+    <path d="M320 151 L380 151"/>
+    <path d="M320 250 L380 250"/>
+    <path d="M480 72  L538 73"/>
+    <path d="M480 151 L538 152"/>
+    <path d="M480 250 L538 251"/>
+    <path d="M632 73  L684 148"/>
+    <path d="M632 152 L684 158"/>
+    <path d="M632 251 L684 172"/>
+    <path d="M806 160 L822 160"/>
+  </g>
+
+  <!-- footnote -->
+  <rect x="18" y="292" width="864" height="26" rx="3" fill="#F6F7F8" stroke="#8a94a0" stroke-width="1"/>
+  <text x="34" y="310" font-size="12" fill="#444">
+    Each split searches a <tspan font-style="italic">random subset of features</tspan> and maximises the weighted drop in Gini impurity
+    <tspan font-style="italic"> G = 1 &#8722; &#931; p</tspan><tspan font-size="9" dy="3">k</tspan><tspan dy="-3" font-style="italic">&#178;</tspan>; leaves hold at least 20 samples.
+  </text>
+</svg>
