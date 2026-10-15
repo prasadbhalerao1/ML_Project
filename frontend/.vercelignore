@@ -1,0 +1,5 @@
+# Local credentials and build output are never uploaded.
+.env.local
+.vercel/
+node_modules/
+dist/

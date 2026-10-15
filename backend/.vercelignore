@@ -1,0 +1,20 @@
+# Keep the deployed bundle to what serving needs. The model artifact
+# (ml/artifacts/model.joblib) is deliberately NOT listed: it must ship.
+tests/
+pytest.ini
+requirements-dev.txt
+.pytest_cache/
+__pycache__/
+*.pyc
+
+# Training, evaluation and EDA are run locally, never by the API.
+ml/train.py
+ml/evaluate.py
+ml/explore.py
+ml/artifacts/figures/
+ml/artifacts/evaluation_report.json
+
+# Local Vercel credentials: must never be uploaded.
+.env.local
+.env*
+.vercel/
