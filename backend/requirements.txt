@@ -1,0 +1,13 @@
+# Runtime dependencies: exactly what the API needs to serve predictions.
+# This is the file the Vercel deployment installs, so it stays minimal.
+# Training, EDA and tests need more: see requirements-dev.txt.
+#
+# Pinned to the versions this project was built and tested against.
+
+pandas==3.0.6
+numpy==2.5.3
+scikit-learn==1.9.0
+joblib==1.6.0
+
+fastapi==0.143.0
+pydantic==2.13.5

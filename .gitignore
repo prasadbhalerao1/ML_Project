@@ -1,0 +1,45 @@
+# Raw and processed data — download from Kaggle instead (see README.md)
+data/raw/*
+!data/raw/.gitkeep
+data/processed/*
+!data/processed/.gitkeep
+datasets/
+
+# Trained model: ~77 MB, regenerate with `python -m ml.train`.
+# metadata.json, demo_examples.json and figures/ are small and are committed,
+# so the documented results can be checked without retraining.
+backend/ml/artifacts/*.joblib
+
+# Python
+.venv/
+venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+frontend/dist/
+
+# Environment
+.env
+.env.local
+!.env.example
+
+# Tooling and editors
+.playwright-mcp/
+.vscode/
+.idea/
+
+# OS
+Thumbs.db
+.DS_Store
+desktop.ini
+
+# Vercel CLI link state
+.vercel/
+
+# Superseded drafts and render previews kept locally for reference only.
+dev/archive/

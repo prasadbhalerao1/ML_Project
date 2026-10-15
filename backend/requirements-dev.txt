@@ -1,0 +1,14 @@
+# Everything for local development: serving, training, EDA and tests.
+#   pip install -r backend/requirements-dev.txt
+-r requirements.txt
+
+# Model training and evaluation figures
+matplotlib==3.11.2
+seaborn==0.13.2
+
+# Local API server (--reload needs the [standard] extras)
+uvicorn[standard]==0.32.1
+
+# Tests
+pytest==8.3.4
+httpx2==2.13.1         # transport used by FastAPI's TestClient
