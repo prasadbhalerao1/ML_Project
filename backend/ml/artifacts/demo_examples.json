@@ -1,0 +1,34 @@
+[
+  {
+    "label": "lower_risk",
+    "actual_outcome": 0,
+    "features": {
+      "RevolvingUtilizationOfUnsecuredLines": 0.030337601,
+      "age": 72.0,
+      "NumberOfTime30-59DaysPastDueNotWorse": 0.0,
+      "DebtRatio": 0.090372345,
+      "MonthlyIncome": 10500.0,
+      "NumberOfOpenCreditLinesAndLoans": 9.0,
+      "NumberOfTimes90DaysLate": 0.0,
+      "NumberRealEstateLoansOrLines": 1.0,
+      "NumberOfTime60-89DaysPastDueNotWorse": 0.0,
+      "NumberOfDependents": 0.0
+    }
+  },
+  {
+    "label": "higher_risk",
+    "actual_outcome": 1,
+    "features": {
+      "RevolvingUtilizationOfUnsecuredLines": 0.9999999,
+      "age": 49.0,
+      "NumberOfTime30-59DaysPastDueNotWorse": 2.0,
+      "DebtRatio": 0.780982906,
+      "MonthlyIncome": 4679.0,
+      "NumberOfOpenCreditLinesAndLoans": 6.0,
+      "NumberOfTimes90DaysLate": 4.0,
+      "NumberRealEstateLoansOrLines": 2.0,
+      "NumberOfTime60-89DaysPastDueNotWorse": 3.0,
+      "NumberOfDependents": 1.0
+    }
+  }
+]
