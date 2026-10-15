@@ -1,5 +1,12 @@
 # Loan Delinquency Risk Prediction
 
+### ▶ [**Try the live app**](https://delinquency-risk.vercel.app) &nbsp;·&nbsp; [**API docs**](https://loan-default-api.vercel.app/docs)
+
+[![Live app](https://img.shields.io/badge/live%20app-delinquency--risk.vercel.app-2F5D8C?style=flat-square)](https://delinquency-risk.vercel.app)
+[![API](https://img.shields.io/badge/API-Swagger%20UI-2F5D8C?style=flat-square)](https://loan-default-api.vercel.app/docs)
+[![ROC-AUC](https://img.shields.io/badge/ROC--AUC-0.8654-B5483F?style=flat-square)](documentation/05-model-evaluation.md)
+[![Tests](https://img.shields.io/badge/tests-61%20passing-4C7A4C?style=flat-square)](#tests)
+
 An end-to-end machine learning project: a Random Forest classifier that
 estimates the probability a borrower experiences **serious delinquency — 90
 days past due or worse — within two years**, served through a FastAPI backend
@@ -14,12 +21,20 @@ and a React + TypeScript frontend.
 
 | | |
 |---|---|
-| Website | <https://delinquency-risk.vercel.app> |
-| API (Swagger UI) | <https://loan-default-api.vercel.app/docs> |
+| **Website** | **<https://delinquency-risk.vercel.app>** |
+| **API (Swagger UI)** | **<https://loan-default-api.vercel.app/docs>** |
+| Health check | <https://loan-default-api.vercel.app/health> |
 
-The first request after a quiet period takes 8 to 9 seconds while the model
-loads. How it is deployed, and why there are no CORS errors:
+Both are hosted on Vercel. The first request after a quiet period takes 8 to 9
+seconds while the 70 MB model loads; subsequent requests take about half a
+second. How it is deployed, and why there are no CORS errors:
 [Deployment](documentation/08-deployment.md).
+
+Try it without the UI:
+
+```bash
+curl https://delinquency-risk.vercel.app/api/health
+```
 
 ## Contents
 
