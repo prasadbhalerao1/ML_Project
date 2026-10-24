@@ -43,3 +43,10 @@ desktop.ini
 
 # Superseded drafts and render previews kept locally for reference only.
 dev/archive/
+
+# Screenshot staging area — the committed copies live in dev/report/assets/.
+shots/
+
+# Reference documents supplied for formatting only, not this project's work.
+/seminar report format*.docx
+/EconCluster_ML_Practical_Mini_Project*.docx
