@@ -32,8 +32,22 @@ and edited in place; slides 2–4 are generated.
 
 ## report/
 
-`Loan_Default_Prediction_Report.docx` and `.pdf` — 19 pages, Times New Roman
-at 14 / 12 / 10 pt, with the figures from `backend/ml/artifacts/figures/`.
+| File | |
+|---|---|
+| `Seminar_Report_Loan_Default_Prediction.docx` / `.pdf` | **The seminar report.** 32 pages in the department's 2026 format |
+| `Loan_Default_Prediction_Report.docx` / `.pdf` | The earlier project report — 19 pages, Times New Roman 14 / 12 / 10 pt |
+| `assets/` | The images both reports embed: live screenshots of the deployed app, and the documentation diagrams rendered to PNG |
+
+The seminar report follows `seminar report format 2026.docx`: A4, Times New
+Roman, 12 pt body, 16 pt chapter and 14 pt section headings, 1.5 line spacing,
+justified, left margin 1.5 in and 1 in elsewhere, figure captions below and
+table captions above, Roman numerals for the preliminary pages and Arabic from
+Chapter 1. It runs title page → certificate → acknowledgement → abstract →
+index → Chapters 1–7 → IEEE references, with 10 figures and 11 tables.
+
+The page numbers in the index, list of figures and list of tables are written
+literally, so if the text changes enough to repaginate, re-render the PDF and
+correct them.
 
 ## build-scripts/
 
@@ -45,7 +59,9 @@ the deck and report cannot contradict the model.
 | `build_deck.py` | The 4-slide `.pptx` | `python build_deck.py <project_root> <source.pptx> <out.pptx>` |
 | `build_technical_sheet.py` | The A4 portrait sheet (HTML) | `python build_technical_sheet.py <project_root> <out.html>` |
 | `build_print_handout.py` | The 2-page duplex handout (HTML) | `python build_print_handout.py <project_root> <slides_png_dir> <out.html>` |
-| `build_report.js` | The report `.docx` | `node build_report.js <project_root> <out.docx>` |
+| `build_report.js` | The earlier report `.docx` | `node build_report.js <project_root> <out.docx>` |
+| `build_seminar_report.py` | The seminar report `.docx` | `python build_seminar_report.py <project_root> <assets_dir> <out.docx>` |
+| `svg2png.py` | Documentation diagrams → PNG, for embedding | `python svg2png.py <svg_dir> <out_dir> 2.4 <chrome.exe>` |
 | `export_slides.ps1` | Slide PNGs, via PowerPoint | `./export_slides.ps1 -In deck.pptx -OutDir png -Slides 1,2,3,4 -Width 2600` |
 | `pptx_to_pdf.ps1`, `docx_to_pdf.ps1` | PDF conversion, via Office | `./pptx_to_pdf.ps1 -In a.pptx -Out a.pdf` |
 
