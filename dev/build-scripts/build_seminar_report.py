@@ -81,7 +81,7 @@ normal.font.color.rgb = INK
 normal.element.rPr.rFonts.set(qn("w:eastAsia"), FONT)
 pf = normal.paragraph_format
 pf.line_spacing = 1.5
-pf.space_after = Pt(6)
+pf.space_after = Pt(4)
 pf.alignment = WD_ALIGN_PARAGRAPH.JUSTIFY
 
 sec = doc.sections[0]
@@ -124,10 +124,20 @@ def chapter(text):
     break paragraph, which would leave a blank page whenever the previous
     chapter happened to end near the bottom of one.
     """
+    drop_trailing_empty()
     p = para(text, size=16, bold=True, align=WD_ALIGN_PARAGRAPH.LEFT,
              space_after=10, line=1.5)
     p.paragraph_format.page_break_before = True
     return p
+
+
+def drop_trailing_empty():
+    """Remove a trailing empty paragraph before a forced page break."""
+    while doc.paragraphs and not doc.paragraphs[-1].text.strip():
+        last = doc.paragraphs[-1]._p
+        if last.getparent() is None:
+            break
+        last.getparent().remove(last)
 
 
 def section(text):
@@ -160,12 +170,17 @@ def figure(filename, width_in, cap):
     caption(cap)
 
 
-def table(headers, rows, cap, widths=None, font_size=11):
-    """Table with its caption above, per the formatting guidelines."""
+def table(headers, rows, cap, widths=None, font_size=11, split=False):
+    """Table with its caption above, per the formatting guidelines.
+
+    `split` lets a long table flow across a page break; without it a table
+    that will not fit is pushed whole onto the next page, stranding one.
+    """
     caption(cap, above=True)
     t = doc.add_table(rows=1, cols=len(headers))
     t.style = "Table Grid"
-    keep_with_next(t)
+    if not split:
+        keep_with_next(t)
     t.alignment = WD_TABLE_ALIGNMENT.CENTER
     if widths:
         for i, w in enumerate(widths):
@@ -193,17 +208,18 @@ def table(headers, rows, cap, widths=None, font_size=11):
             add_runs(cp, v[2:-2] if bold else v, size=font_size, bold=bold)
             if widths:
                 cells[i].width = Inches(widths[i])
-    keep_with_next(t)
-    para(space_after=4)
+    keep_with_next(t, rows_only=split)
     return t
 
 
-def keep_with_next(t):
+def keep_with_next(t, rows_only=False):
     """Keep rows intact, and repeat the header if a table must break."""
     for row in t.rows:
         row._tr.get_or_add_trPr().append(OxmlElement("w:cantSplit"))
     header = OxmlElement("w:tblHeader")
     t.rows[0]._tr.get_or_add_trPr().append(header)
+    if rows_only:
+        return
     for row in t.rows[:-1]:
         for cell in row.cells:
             for p in cell.paragraphs:
@@ -347,38 +363,36 @@ index_rows = [
     ["3", "List of Figures and Tables", "v"],
     ["4", "Chapter 1: Introduction", "1"],
     ["5", "Chapter 2: Literature Review", "2"],
-    ["6", "Chapter 3: Technology / Concept Overview", "4"],
-    ["7", "Chapter 4: Applications and Results", "8"],
-    ["8", "Chapter 5: Advantages and Limitations", "13"],
-    ["9", "Chapter 6: Future Scope", "15"],
-    ["10", "Chapter 7: Conclusion", "16"],
-    ["11", "References", "17"],
+    ["6", "Chapter 3: Technology / Concept Overview", "3"],
+    ["7", "Chapter 4: Applications and Results", "6"],
+    ["8", "Chapter 5: Advantages and Limitations", "9"],
+    ["9", "Chapter 6: Future Scope", "10"],
+    ["10", "Chapter 7: Conclusion", "11"],
+    ["11", "References", "12"],
 ]
 table(["Sr. No.", "Contents", "Page No."], index_rows,
       "", widths=[0.9, 3.9, 1.0])
 
 chapter("LIST OF FIGURES AND TABLES")
 fig_rows = [
-    ["Fig. 3.1", "System architecture of the implemented application", "4"],
-    ["Fig. 3.2", "How a Random Forest produces a prediction", "5"],
-    ["Fig. 4.1", "Dashboard of the deployed application", "9"],
-    ["Fig. 4.2", "Model information page, read live from saved metadata", "10"],
-    ["Fig. 4.3", "Predicted score distribution by actual outcome", "11"],
+    ["Fig. 3.1", "System architecture of the implemented application", "3"],
+    ["Fig. 4.1", "Dashboard of the deployed application", "7"],
+    ["Fig. 4.2", "Predicted score distribution by actual outcome", "8"],
 ]
 table(["Figure", "Title", "Page"], fig_rows, "", widths=[0.9, 3.9, 0.9])
 
 para(space_after=8)
 tab_rows = [
     ["Table 2.1", "Summary of literature review", "2"],
-    ["Table 3.1", "Key concepts and definitions", "4"],
-    ["Table 3.2", "Input features", "6"],
-    ["Table 3.3", "Data quality issues and treatment", "6"],
-    ["Table 3.4", "Validation comparison of configurations", "6"],
-    ["Table 4.1", "Held-out test metrics", "11"],
-    ["Table 4.2", "Per-class report and confusion matrix", "11"],
-    ["Table 4.3", "Effect of the decision threshold", "12"],
-    ["Table 5.1", "Advantages and limitations", "13"],
-    ["Table 7.1", "Technology stack", "16"],
+    ["Table 3.1", "Key concepts and definitions", "3"],
+    ["Table 3.2", "Input features", "4"],
+    ["Table 3.3", "Data quality issues and treatment", "4"],
+    ["Table 3.4", "Validation comparison of configurations", "5"],
+    ["Table 4.1", "Held-out test metrics", "7"],
+    ["Table 4.2", "Per-class report and confusion matrix", "7"],
+    ["Table 4.3", "Effect of the decision threshold", "8"],
+    ["Table 5.1", "Advantages and limitations", "9"],
+    ["Table 7.1", "Technology stack", "11"],
 ]
 table(["Table", "Title", "Page"], tab_rows, "", widths=[0.9, 3.9, 0.9])
 
@@ -419,8 +433,6 @@ para(f"The problem is also statistically interesting. Only {pc(base)} of "
      f"familiar metric: a model that always answers “no delinquency” scores "
      f"{pc(1 - base, 1)} accuracy while catching nobody. Which metrics "
      f"replace accuracy, and why, is a central theme of this report.")
-para("The same reasoning transfers to fraud detection, medical diagnosis and "
-     "equipment failure — any rare-event prediction problem.")
 
 section("1.3 Objectives")
 for obj in (
@@ -439,27 +451,20 @@ for obj in (
 # ========================================= CHAPTER 2: LITERATURE REVIEW ====
 chapter("CHAPTER 2: LITERATURE REVIEW")
 para([("Breiman [1] ", {"bold": True}),
-      ("introduced Random Forests. Combining many decorrelated trees reduces "
-       "variance without raising bias, and generalisation error converges as "
-       "trees are added. Two sources of randomness are responsible: bootstrap "
-       "sampling of rows, and restricting each split to a random feature "
-       "subset.", {})])
+      ("introduced Random Forests: combining decorrelated trees reduces "
+       "variance without raising bias. Two sources of randomness are "
+       "responsible — bootstrap sampling of rows, and restricting each split "
+       "to a random feature subset.", {})])
 para([("Saito and Rehmsmeier [4] ", {"bold": True}),
       ("were the most influential source here. ROC plots mislead under "
-       "imbalance, because the false-positive rate is measured against a large "
-       "negative population and barely moves. Precision-recall plots do not, "
-       "since precision counts only what was flagged. This is why the model "
-       "below is selected on PR-AUC.", {})])
-para([("Pedregosa et al. [2] ", {"bold": True}),
-      ("document scikit-learn. Its RandomForestClassifier averages per-tree "
-       "leaf class proportions — not the hard majority vote introductory "
-       "treatments describe. That distinction is kept throughout.", {})])
-para([("Chawla et al. [5] ", {"bold": True}),
-      ("survey imbalance remedies: resampling and class weights. Framing the "
-       "problem as choosing an operating point on a trade-off curve, rather "
-       "than fixing a broken model, informed the decision here to move the "
-       "threshold instead of reweighting.", {})])
-
+       "imbalance, because the false-positive rate is measured against a "
+       "large negative population and barely moves; precision-recall plots do "
+       "not, since precision counts only what was flagged. This is why the "
+       "model below is selected on PR-AUC. Pedregosa et al. [2] document "
+       "scikit-learn, whose forest averages per-tree leaf proportions rather "
+       "than taking the majority vote introductory treatments describe. "
+       "Chawla et al. [5] frame imbalance as a choice of operating point on a "
+       "trade-off curve.", {})])
 table(["Sr.", "Author(s), Year", "Focus", "Key Findings"],
       [["1", "Breiman, 2001", "Random Forest theory",
         "Averaging decorrelated trees cuts variance; error converges as trees "
@@ -480,73 +485,58 @@ table(["Sr.", "Author(s), Year", "Focus", "Key Findings"],
 para("Research gap.", size=14, bold=True, align=WD_ALIGN_PARAGRAPH.LEFT,
      space_before=8, space_after=4)
 para("The literature agrees that accuracy and ROC-AUC flatter a classifier "
-     "when positives are rare, yet both are still widely reported. The "
+     "when positives are rare, yet both are still widely reported, and the "
      "standard remedies are often applied without checking whether they "
-     "improve ranking or merely relocate the operating point.")
-para("This work measures that. Class weighting is found to move the model "
-     "along the precision-recall curve without lifting it, so explicit "
-     "threshold selection is used instead. Separately, undocumented "
-     "placeholder codes that much published work on this data imputes away "
-     "are shown to carry real signal.")
+     "improve ranking or merely relocate the operating point. This work "
+     "measures that: class weighting moves the model along the "
+     "precision-recall curve without lifting it, so explicit threshold "
+     "selection is used instead. Separately, undocumented placeholder codes "
+     "that much published work imputes away are shown to carry real signal.")
 
 # ============================== CHAPTER 3: TECHNOLOGY / CONCEPT OVERVIEW ===
 chapter("CHAPTER 3: TECHNOLOGY / CONCEPT OVERVIEW")
 
 section("3.1 Basic Concepts")
 table(["Term", "Definition"],
-      [["Decision tree", "Repeatedly splits data on one attribute. Terminal "
-        "nodes (leaves) hold the training samples that reached them."],
-       ["Gini impurity", "G = 1 − Σ pk², where pk is the proportion of class k "
-        "in a node. Zero when a node holds one class. Splits maximise the "
-        "weighted reduction in G."],
+      [["Decision tree", "Splits data repeatedly on one attribute. Leaves "
+        "hold the training samples that reached them."],
+       ["Gini impurity", "G = 1 − Σ pk², where pk is the proportion of class "
+        "k in a node. Splits maximise its weighted reduction."],
        ["Bagging", "Each tree trains on a sample drawn with replacement, so "
-        "every tree sees different data. Averaging reduces variance."],
+        "averaging their output reduces variance."],
        ["Random Forest", f"An ensemble of {trees} such trees, each split "
         "restricted to a random feature subset."],
-       ["Target", "SeriousDlqin2yrs — 1 if 90+ days past due within two "
-        "years, else 0."],
-       ["Precision", "Of those flagged, the share truly delinquent. "
-        "TP / (TP + FP)."],
-       ["Recall", "Of the truly delinquent, the share found. TP / (TP + FN)."],
-       ["F1-score", "Harmonic mean 2PR / (P + R); dominated by the weaker of "
-        "the two."],
-       ["ROC-AUC", "Probability a random positive outranks a random negative. "
-        "0.5 is chance."],
+       ["Precision / Recall", "Of those flagged, the share truly delinquent "
+        "— TP/(TP+FP). Of the truly delinquent, the share found — "
+        "TP/(TP+FN)."],
+       ["F1-score", "Harmonic mean 2PR/(P+R); dominated by the weaker term."],
+       ["ROC-AUC", "Probability a random positive outranks a random "
+        "negative. 0.5 is chance."],
        ["PR-AUC", f"Area under the precision-recall curve. No-skill baseline "
-        f"= the positive rate, here {base:.4f}."],
-       ["Threshold", "The probability above which a prediction is reported "
-        "positive. Chosen after training."]],
+        f"= the positive rate, here {base:.4f}."]],
       "Table 3.1: Key concepts and definitions",
       widths=[1.3, 4.5], font_size=10)
 
-section("3.2 Architecture")
+section("3.2 Architecture and Working")
 para("Training, evaluation and figure generation run offline and produce one "
      "saved artifact. The web service loads it at startup and scores "
-     "requests; it never trains.")
-figure("system-architecture.png", 5.8,
+     "requests; it never trains. The browser talks to one origin only — "
+     "requests to /api are forwarded server-side, so no cross-origin request "
+     "is ever made.")
+figure("system-architecture.png", 5.0,
        "Figure 3.1: System architecture of the implemented application")
-para("The browser talks to one origin only — requests to /api are forwarded "
-     "server-side, so no cross-origin request is ever made.")
-
-para("Training pipeline.", size=14, bold=True, align=WD_ALIGN_PARAGRAPH.LEFT,
-     space_before=8, space_after=4)
-para("Six stages: load and validate against a schema; mark implausible values "
-     "missing; split 60/20/20 stratified; compare five candidates on "
-     "validation; select the threshold; score once on the test split.")
-para("Every fitted quantity — imputation medians, model parameters, the "
-     "threshold — comes from train and validation only. The test split is "
-     "held in reserve until the final stage. Stratifying matters at a "
-     f"{pc(base)} base rate: an unstratified split could leave the three "
-     "parts with different class ratios, making their metrics incomparable.")
-
-section("3.3 How a Prediction Is Made")
-figure("random-forest.png", 5.8,
-       "Figure 3.2: How a Random Forest produces a prediction")
-para(f"Each of the {trees} trees routes the record to a leaf and reports that "
-     f"leaf's positive proportion. The forest averages those {trees} values — "
-     f"scikit-learn averages per-tree probabilities rather than taking a "
-     f"majority vote. The mean is compared with the threshold of {thr:.4f} to "
-     f"give a class.")
+para("Training runs in six stages: load and validate against a schema; mark "
+     "implausible values missing; split 60/20/20 stratified; compare five "
+     "candidates on validation; select the threshold; score once on test. "
+     "Every fitted quantity — imputation medians, model parameters, the "
+     f"threshold — comes from train and validation only. Stratifying matters "
+     f"at a {pc(base)} base rate, or the three parts would carry different "
+     f"class ratios and their metrics would not be comparable.")
+para(f"To predict, each of the {trees} trees routes the record to a leaf and "
+     f"reports that leaf's positive proportion. The forest averages those "
+     f"{trees} values — scikit-learn averages per-tree probabilities rather "
+     f"than taking a majority vote — and the mean is compared with the "
+     f"threshold of {thr:.4f} to give a class.")
 
 section("3.4 Features and Data Quality")
 para("Ten numeric attributes per borrower. No categorical encoding is needed, "
@@ -613,38 +603,32 @@ para(f"Adding missing-value indicators won, at "
 chapter("CHAPTER 4: APPLICATIONS AND RESULTS")
 
 section("4.1 Applications and Use Cases")
-para([("Application scoring. ", {"bold": True}),
-      ("A score at origination, combined with policy rules and affordability "
-       "checks. Every applicant is assessed on the same basis in "
-       "milliseconds. The system below demonstrates this directly.", {})])
-para([("Behavioural scoring. ", {"bold": True}),
-      ("Rescoring an existing portfolio as payment behaviour accumulates, to "
-       "catch accounts drifting toward delinquency early enough to "
-       "intervene.", {})])
-para([("Collections prioritisation. ", {"bold": True}),
-      ("Ranking delinquent accounts so finite recovery effort goes where it "
-       "matters. Needs only the ranking, not a calibrated probability.", {})])
-para("The technique generalises to any rare-event problem on tabular data: "
-     "fraud detection, claim triage, churn, predictive maintenance, clinical "
-     "risk scoring.")
-para("The benefits are consistency, scale and inspectability — identical "
-     "criteria for every applicant, at volumes no manual process could reach, "
-     "with the attributes the model relies on open to scrutiny.")
+para([("Application scoring ", {"bold": True}),
+      ("gives a risk score at origination, combined with policy rules and "
+       "affordability checks, so every applicant is assessed on the same "
+       "basis in milliseconds. ", {}),
+      ("Behavioural scoring ", {"bold": True}),
+      ("rescores an existing portfolio as payment behaviour accumulates, "
+       "catching accounts drifting toward delinquency early enough to "
+       "intervene. ", {}),
+      ("Collections prioritisation ", {"bold": True}),
+      ("ranks delinquent accounts so finite recovery effort goes where it "
+       "matters; it needs only the ranking, not a calibrated probability.",
+       {})])
+para("The technique generalises to any rare-event problem on tabular data — "
+     "fraud detection, claim triage, churn, predictive maintenance. The "
+     "benefits are consistency, scale and inspectability: identical criteria "
+     "for every applicant, at volumes no manual process could reach.")
 
 section("4.2 Deployed Application")
 para(f"The model is deployed at {APP_URL}, with API documentation at "
-     f"{API_URL}. Four pages: Dashboard, Predict, Result and Model info. All "
-     f"displayed values are fetched from the service at run time.")
-figure("01-dashboard.png", 5.7,
+     f"{API_URL}. Four pages — Dashboard, Predict, Result and Model info — "
+     f"all fetching their values from the service at run time. The dashboard "
+     f"states what the model does and does not do, and shows the "
+     f"majority-class baseline beside the accuracy so the latter cannot be "
+     f"mistaken for a strong result.")
+figure("01-dashboard.png", 4.9,
        "Figure 4.1: Dashboard of the deployed application")
-para("The dashboard states what the model does and does not do, and shows the "
-     "majority-class baseline beside the accuracy so the latter cannot be "
-     "mistaken for a strong result.")
-figure("04-model-info.png", 5.4,
-       "Figure 4.2: Model information page, read live from the saved metadata")
-para("The form exposes exactly the ten trained attributes with readable "
-     "labels; the result page separates the probability, the thresholded "
-     "class and an illustrative risk band.")
 
 section("4.3 Results")
 para(f"Measured on {dist['test']['total']:,} held-out borrowers, scored once, "
@@ -680,23 +664,20 @@ table(["Class", "Precision", "Recall", "F1", "Support"],
       "Table 4.2: Per-class report and confusion matrix",
       widths=[1.7, 1.1, 1.0, 1.0, 1.0], font_size=10)
 
-para(f"This is the imbalance problem in one table. The model scores "
-     f"{f4(report['classes']['0']['f1'])} F1 on the majority class and "
+para(f"This is the imbalance problem in one table: "
+     f"{f4(report['classes']['0']['f1'])} F1 on the majority class against "
      f"{f4(report['classes']['1']['f1'])} on the minority. The weighted "
      f"average of {f4(report['weighted_avg']['f1'])} looks impressive but is "
-     f"dominated by {report['classes']['0']['support']:,} negatives and says "
-     f"almost nothing about the class the system exists to find. Quote the "
-     f"macro average ({f4(report['macro_avg']['f1'])}) or the positive-class "
-     f"F1 — never the weighted one.")
+     f"dominated by {report['classes']['0']['support']:,} negatives. Quote "
+     f"the macro average ({f4(report['macro_avg']['f1'])}) or the "
+     f"positive-class F1 — never the weighted one.")
 
-para("Why the errors occur.", size=14, bold=True,
-     align=WD_ALIGN_PARAGRAPH.LEFT, space_before=8, space_after=4)
-figure("05-chart-separation.png", 5.4,
-       "Figure 4.3: Predicted score distribution by actual outcome")
-para("Most borrowers who stayed current score near zero. Those who became "
-     "delinquent are spread across the whole range rather than clustered high, "
-     "so many fall inside the same region as healthy borrowers. That overlap "
-     "— not a defect in the implementation — is what limits recall.")
+figure("05-chart-separation.png", 4.8,
+       "Figure 4.2: Predicted score distribution by actual outcome")
+para("Most borrowers who stayed current score near zero, but those who became "
+     "delinquent are spread across the whole range rather than clustered "
+     "high. That overlap — not a defect in the implementation — is what "
+     "limits recall.")
 
 table(["Threshold", "Accuracy", "Precision", "Recall", "F1", "Flagged"],
       [[("**" + f"{r['threshold']:.4f}" + "**") if abs(r["threshold"] - thr) < 5e-5
@@ -706,27 +687,53 @@ table(["Threshold", "Accuracy", "Precision", "Recall", "F1", "Flagged"],
        for r in sweep],
       "Table 4.3: Effect of the decision threshold",
       widths=[1.1, 0.95, 1.0, 0.85, 0.85, 0.85], font_size=10)
-para("The same model behaves very differently depending on the cut-off. At "
-     "0.10 recall exceeds 0.70 but precision falls to 0.26 — three in four "
-     "flags are false alarms. At 0.50 precision passes 0.62 but only one "
-     "delinquency in six is found. Accuracy rises monotonically simply "
-     "because the model answers “no” more often, which is a further reason "
-     "not to trust it here.")
+para("The same model behaves very differently by cut-off: at 0.10 recall "
+     "exceeds 0.70 but three in four flags are false alarms; at 0.50 "
+     "precision passes 0.62 but only one delinquency in six is found. "
+     "Accuracy rises monotonically simply because the model answers “no” "
+     "more often — a further reason not to trust it here.")
 
-para("Stability.", size=14, bold=True, align=WD_ALIGN_PARAGRAPH.LEFT,
-     space_before=8, space_after=4)
 para(f"Five-fold cross-validation on train + validation, test excluded "
      f"throughout, gives ROC-AUC {f4(cv['roc_auc']['mean'])} ± "
      f"{f4(cv['roc_auc']['std'])} and PR-AUC {f4(cv['pr_auc']['mean'])} ± "
-     f"{f4(cv['pr_auc']['std'])}. The test values sit within one standard "
-     f"deviation of both, so the result is not a lucky split.")
-para(f"ROC-AUC falls from {f4(train['roc_auc'])} in-sample to "
-     f"{f4(test['roc_auc'])} held-out, a gap of "
-     f"{train['roc_auc'] - test['roc_auc']:.4f}. Some overfitting remains "
-     f"despite regularisation; it is reported rather than concealed.")
+     f"{f4(cv['pr_auc']['std'])}; the test values sit within one standard "
+     f"deviation of both, so the result is not a lucky split. ROC-AUC does "
+     f"fall from {f4(train['roc_auc'])} in-sample to {f4(test['roc_auc'])} "
+     f"held-out, a gap of {train['roc_auc'] - test['roc_auc']:.4f} — some "
+     f"overfitting remains despite regularisation, and is reported rather "
+     f"than concealed.")
 
 # ============================ CHAPTER 5: ADVANTAGES AND LIMITATIONS =======
 chapter("CHAPTER 5: ADVANTAGES AND LIMITATIONS")
+section("5.1 Key Limitations")
+para([("Data, not algorithm. ", {"bold": True}),
+      ("US consumers around 2011, with no date column — so no out-of-time "
+       "validation is possible and the sampling frame is undocumented.",
+       {})])
+para([("Uncalibrated. ", {"bold": True}),
+      ("A predicted 0.30 is a ranking score, not a claim that 30 in 100 such "
+       "borrowers default.", {})])
+para([("Fairness untested. ", {"bold": True}),
+      ("No race, sex or geography in the data — but that is not protection, "
+       "since age is used and income can proxy for protected traits. Absence "
+       "of measured bias is absence of measurement.", {})])
+para([("Threshold economics. ", {"bold": True}),
+      ("Maximising F1 weights a missed default and a false alarm equally; "
+       "real lending does not.", {})])
+
+section("5.2 Challenges Encountered")
+para([("Undocumented codes. ", {"bold": True}),
+      ("The codes 96 and 98 appear in 269 records with no explanation. Those "
+       "rows are 54.65% positive against a 6.68% base rate, so imputing them "
+       "away would discard signal while asserting clean payment histories. "
+       "Imputing with a retained indicator lets the model learn the value was "
+       "unavailable without guessing what the codes mean.", {})])
+para([("Deployment and skew. ", {"bold": True}),
+      ("The Python stack plus a 70 MB model is ~315 MB, so runtime and "
+       "training dependencies were split to fit the 500 MB limit. Any "
+       "train/inference preprocessing difference would corrupt predictions "
+       "silently — one saved pipeline removes the possibility.", {})])
+
 table(["Advantages", "Limitations"],
       [["Captures non-linear interactions without feature engineering",
         "Data describes 2011 US consumers; current performance unknown"],
@@ -741,61 +748,34 @@ table(["Advantages", "Limitations"],
        ["Trains in ~1 minute; reproducible with a fixed seed",
         "No protected attributes, so fairness cannot be tested"]],
       "Table 5.1: Advantages and limitations",
-      widths=[2.9, 2.9], font_size=10)
-
-section("5.1 Key Limitations")
-para([("Data, not algorithm. ", {"bold": True}),
-      ("The records are US consumers around 2011 with no date column, so no "
-       "out-of-time validation is possible and the sampling frame is "
-       "undocumented.", {})])
-para([("Uncalibrated. ", {"bold": True}),
-      ("A predicted 0.30 is a ranking score, not a claim that 30 in 100 such "
-       "borrowers default.", {})])
-para([("Fairness untested. ", {"bold": True}),
-      ("No race, sex or geography in the data. That is not protection — age "
-       "is used, and income or utilisation can proxy for protected traits. "
-       "Absence of measured bias is absence of measurement.", {})])
-para([("Threshold economics. ", {"bold": True}),
-      ("Maximising F1 weights a missed default and a false alarm equally. "
-       "Real lending does not; choosing properly needs loss-given-default and "
-       "margin figures the dataset lacks.", {})])
-
-section("5.2 Challenges Encountered")
-para([("Undocumented codes. ", {"bold": True}),
-      ("The codes 96 and 98 appear in 269 records with no explanation. Those "
-       "rows are 54.65% positive against a 6.68% base rate, so imputing them "
-       "away would discard signal while asserting clean payment histories. "
-       "Imputing with a retained indicator lets the model learn the value was "
-       "unavailable, without guessing what the codes mean.", {})])
-para([("Deployment size. ", {"bold": True}),
-      ("The scientific Python stack plus a 70 MB model is ~315 MB. Splitting "
-       "runtime from training dependencies was needed to fit the 500 MB "
-       "limit.", {})])
-para([("Train-serve skew. ", {"bold": True}),
-      ("Any difference between training and inference preprocessing corrupts "
-       "predictions silently. One saved pipeline removes the possibility.", {})])
+      widths=[2.9, 2.9], font_size=10, split=True)
 
 # ======================================== CHAPTER 6: FUTURE SCOPE =========
 chapter("CHAPTER 6: FUTURE SCOPE")
-para([("Probability calibration. ", {"bold": True}),
-      ("Fit a calibrator on held-out data and report a reliability diagram and "
-       "Brier score. The single change that would most improve practical "
-       "usefulness.", {})])
-para([("Cost-sensitive thresholds. ", {"bold": True}),
-      ("Replace the F1 criterion with an explicit cost matrix, placing the "
-       "operating point where expected loss is minimised.", {})])
-para([("Out-of-time validation. ", {"bold": True}),
-      ("With origination dates, train on an earlier period and test on a "
-       "later one — the standard approach for credit models, precisely "
-       "because random splits flatter them.", {})])
-para([("Better explanations. ", {"bold": True}),
-      ("Permutation importance on held-out data is less biased than the "
-       "impurity measure used here. Per-prediction attributions (e.g. SHAP) "
-       "would support the adverse-action explanations regulated lending "
-       "requires.", {})])
-para([("Fairness assessment. ", {"bold": True}),
-      ("With the relevant attributes, test for disparate impact across "
-       "protected groups and mitigate where needed.", {})])
+para("Each item below follows directly from a limitation in Chapter 5.")
+for head, text in (
+    ("Probability calibration.",
+     "Fit a calibrator on held-out data and report a reliability diagram and "
+     "Brier score. The single change that would most improve practical "
+     "usefulness."),
+    ("Cost-sensitive thresholds.",
+     "Replace the F1 criterion with an explicit cost matrix, placing the "
+     "operating point where expected loss is minimised."),
+    ("Out-of-time validation.",
+     "With origination dates, train on an earlier period and test on a later "
+     "one — standard for credit models, precisely because random splits "
+     "flatter them."),
+    ("Better explanations.",
+     "Permutation importance on held-out data is less biased than the "
+     "impurity measure used here; per-prediction attributions such as SHAP "
+     "would support the adverse-action explanations regulated lending "
+     "requires."),
+    ("Fairness assessment.",
+     "With the relevant attributes, test for disparate impact across "
+     "protected groups and mitigate where needed."),
+):
+    para([(head + " ", {"bold": True}), (text, {})], style="List Bullet",
+         space_after=3)
 para("The field is moving toward models that are auditable, not merely "
      "accurate — regulation increasingly requires that an automated credit "
      "decision be explainable to the person it affects.")
@@ -810,20 +790,19 @@ para("The methodological findings matter as much as the numbers:")
 for item in (
     "Accuracy is actively misleading here — a model that ignores its inputs "
     "scores higher than the trained one.",
-    "Class weighting, the conventional remedy, moved the model along the "
-    "precision-recall curve without lifting it; an explicit threshold "
-    "selected on validation was used instead.",
-    "Undocumented placeholder codes carried real signal and were handled with "
-    "missing-value indicators rather than imputed away.",
-    "The residual gap between in-sample and held-out performance was measured "
-    "and reported, not omitted.",
+    "Class weighting moved the model along the precision-recall curve "
+    "without lifting it; an explicit threshold chosen on validation was used "
+    "instead.",
+    "Undocumented placeholder codes carried real signal and were handled "
+    "with missing-value indicators rather than imputed away.",
+    "The gap between in-sample and held-out performance was measured and "
+    "reported, not omitted.",
 ):
     bullet(item)
 para("The engineering discipline is what makes the figures trustworthy: "
      "preprocessing held inside the saved pipeline so training and inference "
-     "cannot diverge, the threshold stored with the model so the served "
-     "cut-off and reported metrics agree, and every documented number "
-     "generated from the artifact rather than transcribed.")
+     "cannot diverge, the threshold stored with the model, and every "
+     "documented number generated from the artifact rather than transcribed.")
 table(["Layer", "Technology"],
       [["Dataset", "Kaggle Give Me Some Credit — 150,000 records"],
        ["Model", "scikit-learn RandomForestClassifier, joblib"],
@@ -835,8 +814,8 @@ table(["Layer", "Technology"],
       "Table 7.1: Technology stack", widths=[1.3, 4.5], font_size=10)
 para("The honest conclusion is that this system extracts real, measurable "
      "signal from borrower data and is simultaneously nowhere near fit to "
-     "decide anybody's credit application. Holding both statements at once is "
-     "the central skill the exercise teaches.")
+     "decide anybody's credit application. Holding both statements at once "
+     "is the central skill the exercise teaches.")
 
 # ============================================================ REFERENCES ==
 chapter("REFERENCES")
