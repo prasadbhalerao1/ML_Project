@@ -34,7 +34,7 @@ and edited in place; slides 2–4 are generated.
 
 | File | |
 |---|---|
-| `Seminar_Report_Loan_Default_Prediction.docx` / `.pdf` | **The seminar report.** 32 pages in the department's 2026 format |
+| `Seminar_Report_Loan_Default_Prediction.docx` / `.pdf` | **The seminar report.** 23 pages in the department's 2026 format |
 | `Loan_Default_Prediction_Report.docx` / `.pdf` | The earlier project report — 19 pages, Times New Roman 14 / 12 / 10 pt |
 | `assets/` | The images both reports embed: live screenshots of the deployed app, and the documentation diagrams rendered to PNG |
 
@@ -43,7 +43,11 @@ Roman, 12 pt body, 16 pt chapter and 14 pt section headings, 1.5 line spacing,
 justified, left margin 1.5 in and 1 in elsewhere, figure captions below and
 table captions above, Roman numerals for the preliminary pages and Arabic from
 Chapter 1. It runs title page → certificate → acknowledgement → abstract →
-index → Chapters 1–7 → IEEE references, with 10 figures and 11 tables.
+index → Chapters 1–7 → IEEE references, with 5 figures and 10 tables.
+
+6 of the 23 pages are the front matter the template mandates; the content is
+17 pages. Written deliberately tight — short paragraphs, tables and bullets
+in preference to prose.
 
 The page numbers in the index, list of figures and list of tables are written
 literally, so if the text changes enough to repaginate, re-render the PDF and
