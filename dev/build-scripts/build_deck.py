@@ -291,7 +291,7 @@ for br in first._p.findall(qn("a:br")):
     first._p.remove(br)
 rows = [
     "Students Name and PRN no: Prasad Bhalerao (RBT24CB026)",
-    "Faculty: Prof. Neeraj Sathawane",
+    "Faculty: Prof. Neeraj Sathwale",
     "Subject: Machine Learning",
 ]
 for i, text in enumerate(rows):
@@ -328,7 +328,7 @@ for i, (big, small, colour) in enumerate(stats):
 
 section_label(s2, 0.5, 2.9, 6.0, "Ten predictors, in three groups")
 groups = [
-    ("Payment history", P_YELLOW, ["30â€“59 days late", "60â€“89 days late", "90+ days late"]),
+    ("Payment history", P_YELLOW, ["30–59 days late", "60–89 days late", "90+ days late"]),
     ("Credit usage", P_GREEN, ["Revolving utilisation", "Debt ratio", "Open credit lines", "Real-estate loans"]),
     ("Borrower profile", P_BLUE, ["Age", "Monthly income", "Dependents"]),
 ]
@@ -390,7 +390,7 @@ ch.category_axis.tick_labels.font.size = Pt(13)
 quiet_axis(ch.category_axis)
 
 label(s2, 6.83, 3.8, 6.0, 0.34,
-      [{"t": f"Always answering â€œnoâ€ scores {pct(majority_accuracy)} accuracy and catches no one.",
+      [{"t": f"Always answering “no” scores {pct(majority_accuracy)} accuracy and catches no one.",
         "size": 13, "italic": True, "color": MUTED}], name="Imbalance note")
 
 section_label(s2, 6.83, 4.22, 6.0, "Data issues found, and what was done")
@@ -444,7 +444,9 @@ label(s3, 0.5, 3.45, 12.33, 0.34,
 # --- Random Forest diagram (left) ---
 section_label(s3, 0.5, 3.88, 7.0, "How the forest produces a prediction")
 rows_y = [4.3, 5.2, 6.1]
-sample_labels = ["Bootstrap sample 1", "Bootstrap sample 2", "Bootstrap sample 300"]
+sample_labels = [("Data copy 1", "rows drawn at random"),
+                 ("Data copy 2", "some twice, some left out"),
+                 ("Data copy 300", "every tree gets its own")]
 vote_labels = ["0.81", "0.12", "0.74"]
 
 data_box = box(s3, 0.5, 4.75, 1.15, 1.5, fill=P_BLUE, name="Training data")
@@ -455,7 +457,9 @@ write(data_box.text_frame, [
 
 for i, y in enumerate(rows_y):
     sb = box(s3, 2.0, y, 1.55, 0.66, fill=None, name=f"Sample {i + 1}")
-    write(sb.text_frame, [{"t": sample_labels[i], "size": 12, "align": PP_ALIGN.CENTER}],
+    write(sb.text_frame, [
+        {"t": sample_labels[i][0], "size": 11.5, "align": PP_ALIGN.CENTER, "after": 1},
+        {"t": sample_labels[i][1], "size": 7.5, "align": PP_ALIGN.CENTER, "color": MUTED}],
           anchor=MSO_ANCHOR.MIDDLE, margins=(0.04, 0.02, 0.04, 0.02))
     arrow(s3, 1.66, 5.5, 1.99, y + 0.33, head=True)
 
@@ -478,7 +482,7 @@ for i, y in enumerate(rows_y):
 
 # Between the second and third tree rows, not on top of either.
 label(s3, 3.95, 5.87, 0.78, 0.22,
-      [{"t": "â‹®", "size": 14, "bold": True, "align": PP_ALIGN.CENTER}],
+      [{"t": "⋮", "size": 14, "bold": True, "align": PP_ALIGN.CENTER}],
       anchor=MSO_ANCHOR.MIDDLE, name="More trees")
 
 agg = box(s3, 6.15, 4.3, 1.5, 1.2, fill=P_YELLOW, name="Average")
@@ -491,7 +495,7 @@ for y in rows_y:
 arrow(s3, 6.9, 5.5, 6.9, 5.85)
 dec = box(s3, 6.15, 5.85, 1.5, 1.1, fill=P_PINK, line=BRICK, lw=1.25, name="Decision")
 write(dec.text_frame, [
-    {"t": f"â‰¥ {threshold:.4f}", "size": 13, "bold": True, "color": BRICK, "align": PP_ALIGN.CENTER, "after": 2},
+    {"t": f"≥ {threshold:.4f}", "size": 13, "bold": True, "color": BRICK, "align": PP_ALIGN.CENTER, "after": 2},
     {"t": "predict delinquent", "size": 12, "align": PP_ALIGN.CENTER},
 ], anchor=MSO_ANCHOR.MIDDLE)
 
@@ -504,7 +508,7 @@ choices = [
      f"against {f4(by_name['baseline']['pr_auc'])} for unrestricted trees", P_BLUE),
     ("Class weighting tested, not used",
      f"PR-AUC stayed near {f4(by_name['balanced']['pr_auc'])}: it only slides along the "
-     "same precisionâ€“recall curve", P_GREEN),
+     "same precision–recall curve", P_GREEN),
     ("Missing-value flags added",
      f"Best validation PR-AUC ({f4(chosen_val['pr_auc'])}). The 96/98 rows are 54.65% positive",
      P_YELLOW),
@@ -523,8 +527,11 @@ add_notes(s3, "Methodology. The split is stratified 60/20/20 and every fitted st
               "training data only. Five Random Forest configurations were compared on validation by "
               "PR-AUC, the decision threshold was chosen on validation by maximising F1, and the "
               "winner was refitted on train plus validation and scored once on test. The forest "
-              "builds 300 decision trees, each on a bootstrap sample with random feature subsets at "
-              "every split. The probability is the mean of the per-tree leaf proportions, "
+              "builds 300 decision trees. Each gets its own copy of the training rows, drawn at "
+              "random with replacement so a row may appear twice or not at all — the "
+              "statistics term is a bootstrap sample — and each split searches only a "
+              "random subset of the features. The probability is the mean of the per-tree "
+              "leaf proportions, "
               "not a hard majority vote.")
 
 # ------------------------------------------------------------- slide 4 -------
@@ -581,14 +588,14 @@ section_label(s4, 4.35, 2.88, 4.6, "What the forest relies on")
 SHORT = {
     "NumberOfTimes90DaysLate": "90+ days late",
     "RevolvingUtilizationOfUnsecuredLines": "Credit utilisation",
-    "NumberOfTime60-89DaysPastDueNotWorse": "60â€“89 days late",
-    "NumberOfTime30-59DaysPastDueNotWorse": "30â€“59 days late",
+    "NumberOfTime60-89DaysPastDueNotWorse": "60–89 days late",
+    "NumberOfTime30-59DaysPastDueNotWorse": "30–59 days late",
     "DebtRatio": "Debt ratio",
     "age": "Age",
     "MonthlyIncome": "Monthly income",
     "NumberOfOpenCreditLinesAndLoans": "Open credit lines",
 }
-PAYMENT = {"90+ days late", "60â€“89 days late", "30â€“59 days late"}
+PAYMENT = {"90+ days late", "60–89 days late", "30–59 days late"}
 top = [(SHORT[e["feature"]], e["importance"]) for e in importances if e["feature"] in SHORT]
 rest = sum(e["importance"] for e in importances if e["feature"] not in SHORT)
 top.append(("All others", rest))
@@ -679,8 +686,8 @@ write(strip.text_frame, [
     {"t": [
         ("Reading it: ", {"bold": True}),
         (f"accuracy ({pct(test['accuracy'])}) is below the {pct(majority_accuracy)} of always answering "
-         f"â€œnoâ€, so PR-AUC and recall carry the result. Five-fold cross-validation agrees: "
-         f"ROC-AUC {f4(cv['roc_auc']['mean'])} Â± {f4(cv['roc_auc']['std'])}. ", {}),
+         f"“no”, so PR-AUC and recall carry the result. Five-fold cross-validation agrees: "
+         f"ROC-AUC {f4(cv['roc_auc']['mean'])} ± {f4(cv['roc_auc']['std'])}. ", {}),
         ("Limits: ", {"bold": True}),
         ("2011 US data, uncalibrated probabilities, no fairness test. An educational prototype.", {}),
     ], "size": 12.5},
