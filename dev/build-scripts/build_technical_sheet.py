@@ -97,7 +97,7 @@ CSS = """
   body { font-family:"Times New Roman",serif; color:var(--ink);
          font-size:8.1pt; line-height:1.22; }
   /* One factor fills the page; tune this alone, not 25 separate sizes. */
-  .sheet { display:flex; flex-direction:column; gap:2mm; zoom:1.10; }
+  .sheet { display:flex; flex-direction:column; gap:2mm; zoom:1.03; }
 
   header { text-align:center; border-bottom:1.4px solid var(--line); padding-bottom:1mm; }
   h1 { font-size:13.5pt; margin:0; font-weight:700; }
@@ -162,11 +162,11 @@ DIAGRAM = f"""<svg viewBox="0 0 346 92" style="width:100%;height:auto">
     </g>
     <g font-size="7.4">
       <rect x="71" y="4" width="50" height="21" fill="#fff" stroke="#30363d"/>
-      <text x="96" y="18" text-anchor="middle">bootstrap 1</text>
+      <text x="96" y="18" text-anchor="middle">data copy 1</text>
       <rect x="71" y="34" width="50" height="21" fill="#fff" stroke="#30363d"/>
-      <text x="96" y="48" text-anchor="middle">bootstrap 2</text>
+      <text x="96" y="48" text-anchor="middle">data copy 2</text>
       <rect x="71" y="64" width="50" height="21" fill="#fff" stroke="#30363d"/>
-      <text x="96" y="78" text-anchor="middle">bootstrap {trees}</text>
+      <text x="96" y="78" text-anchor="middle">data copy {trees}</text>
     </g>
     <g stroke="#30363d" fill="none" marker-end="url(#a)">
       <path d="M122 14 L140 14"/><path d="M122 44 L140 44"/><path d="M122 74 L140 74"/>
@@ -270,7 +270,7 @@ HTML = f"""<!doctype html>
     {DIAGRAM}
     <div>
       <ul>
-        <li><b>Bag.</b> {trees} bootstrap samples, drawn with replacement.</li>
+        <li><b>{trees} copies of the data,</b> each drawn at random <i>with replacement</i> — a row may appear twice or not at all, so every tree sees different data. <span class="mute">(This resampling is a <i>bootstrap</i>.)</span></li>
         <li><b>Split.</b> At each node search a <i>random feature subset</i>; take the
             split that most reduces Gini.</li>
         <li><b>Stop.</b> Leaf must hold ≥ {leaf} samples.</li>

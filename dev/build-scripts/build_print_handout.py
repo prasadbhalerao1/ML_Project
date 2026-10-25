@@ -34,6 +34,9 @@ n_pos = cm["true_positives"] + cm["false_negatives"]
 n_neg = cm["true_negatives"] + cm["false_positives"]
 leaf = meta["selected_configuration"]["params"]["min_samples_leaf"]
 trees = meta["selected_configuration"]["params"]["n_estimators"]
+# The winning configuration is refitted on train + validation before the
+# final test score, so that is the row count each tree resamples from.
+fit_rows = dist["train"]["total"] + dist["validation"]["total"]
 
 
 def f4(v):
@@ -49,6 +52,9 @@ def img_src(path: Path) -> str:
 
 
 slides = [img_src(PNG_DIR / f"slide{i:02d}.png") for i in (1, 2, 3, 4)]
+SHOTS = ROOT / "shots"
+shot_result = img_src(SHOTS / "print-result.png")
+shot_metrics = img_src(SHOTS / "print-metrics.png")
 
 # ------------------------------------------------------- threshold curve ---
 CW, CH = 196, 68
@@ -118,7 +124,7 @@ CSS = """
   .hband .s { font-size:8pt; font-style:italic; color:var(--mute); margin-top:.5mm; }
 
   /* ---------- page 2: technical sheet ---------- */
-  .sheet { display:flex; flex-direction:column; gap:2mm; zoom:1; }
+  .sheet { display:flex; flex-direction:column; gap:2mm; zoom:0.72; }
   header { text-align:center; border-bottom:1.4px solid var(--line); padding-bottom:.9mm; }
   h1 { font-size:12.5pt; margin:0; font-weight:700; }
   h1 small { color:var(--navy); font-weight:700; font-size:12.5pt; }
@@ -167,6 +173,9 @@ CSS = """
 
   ul { margin:0; padding-left:3mm; }
   li { margin-bottom:.45mm; }
+  .shot { width:100%; height:auto; border:1px solid var(--line);
+          display:block; }
+  .row > * { min-width:0; }
   .foot { border:1px solid var(--line); background:#F6F7F8; padding:1.1mm 1.8mm; font-size:7.1pt; }
 """
 
@@ -178,18 +187,18 @@ DIAGRAM = f"""<svg viewBox="0 0 346 92" style="width:100%;height:auto">
     <text x="25" y="41" text-anchor="middle" font-weight="700">Training</text>
     <text x="25" y="52" text-anchor="middle" font-size="7.2">120,000 rows</text>
     <g stroke="#30363d" fill="none" marker-end="url(#a)">
-      <path d="M50 44 L70 15"/><path d="M50 44 L70 44"/><path d="M50 44 L70 74"/>
+      <path d="M50 44 L63 15"/><path d="M50 44 L63 44"/><path d="M50 44 L63 74"/>
     </g>
     <g font-size="7.4">
-      <rect x="71" y="4" width="50" height="21" fill="#fff" stroke="#30363d"/>
-      <text x="96" y="18" text-anchor="middle">bootstrap 1</text>
-      <rect x="71" y="34" width="50" height="21" fill="#fff" stroke="#30363d"/>
-      <text x="96" y="48" text-anchor="middle">bootstrap 2</text>
-      <rect x="71" y="64" width="50" height="21" fill="#fff" stroke="#30363d"/>
-      <text x="96" y="78" text-anchor="middle">bootstrap {trees}</text>
+      <rect x="64" y="4" width="64" height="21" fill="#fff" stroke="#30363d"/>
+      <text x="96" y="14" text-anchor="middle" font-size="7">data copy 1</text><text x="96" y="21.5" text-anchor="middle" font-size="5.9" fill="#5B5B5B">rows drawn at random</text>
+      <rect x="64" y="34" width="64" height="21" fill="#fff" stroke="#30363d"/>
+      <text x="96" y="44" text-anchor="middle" font-size="7">data copy 2</text><text x="96" y="51.5" text-anchor="middle" font-size="5.9" fill="#5B5B5B">some twice, some left out</text>
+      <rect x="64" y="64" width="64" height="21" fill="#fff" stroke="#30363d"/>
+      <text x="96" y="74" text-anchor="middle" font-size="7">data copy {trees}</text><text x="96" y="81.5" text-anchor="middle" font-size="5.9" fill="#5B5B5B">every tree gets its own</text>
     </g>
     <g stroke="#30363d" fill="none" marker-end="url(#a)">
-      <path d="M122 14 L140 14"/><path d="M122 44 L140 44"/><path d="M122 74 L140 74"/>
+      <path d="M129 14 L140 14"/><path d="M129 44 L140 44"/><path d="M129 74 L140 74"/>
     </g>
     <g>
       <rect x="141" y="3" width="28" height="23" fill="#E2F2E7" stroke="#30363d"/>
@@ -310,47 +319,66 @@ HTML = f"""<!doctype html>
       {DIAGRAM}
       <div class="row" style="grid-template-columns:1fr 1fr;margin-top:1mm">
         <ul>
-          <li><b>Bag.</b> {trees} bootstrap samples, with replacement.</li>
-          <li><b>Split.</b> Search a <i>random feature subset</i>; take the split that
-              most reduces Gini.</li>
-          <li><b>Stop.</b> Leaf must hold ≥ {leaf} samples.</li>
-          <li><b>Predict.</b> Each tree gives its leaf's positive proportion; the forest
-              <b>averages</b> them — not a majority vote.</li>
+          <li><b>Make {trees} copies of the data.</b> Each copy is {fit_rows:,} rows drawn at
+              random <i>with replacement</i> — a row can appear twice or not at all. Every
+              tree therefore learns from slightly different data.
+              <span class="mute">(The statistics name for this resampling is a
+              <i>bootstrap</i>; building one tree per copy is <i>bagging</i>.)</span></li>
+          <li><b>Grow one tree per copy.</b> At each node, look at a <i>random handful of
+              the 10 features</i> — not all of them — and take the split that separates
+              the classes best. Random features keep the trees from being near-copies of
+              each other, which is what makes averaging them worthwhile.</li>
+          <li><b>Stop</b> when a leaf holds fewer than {leaf} borrowers.</li>
         </ul>
-        <div class="fx" style="grid-template-columns:1fr">
+        <div class="fx" style="grid-template-columns:1fr;gap:1mm">
           <div class="cell" style="background:var(--green)">
-            <span class="t">Gini impurity</span>
+            <span class="t">Choosing a split — Gini impurity</span>
             <div class="e">G = 1 − Σ p<sub>k</sub>²</div>
-            <div class="n">Lower = purer node. The split maximises the weighted drop in G.</div>
+            <div class="n">0 = pure node. Take the split with the largest weighted
+            drop in G:</div>
+            <div class="e" style="margin-top:.4mm">ΔG = G<sub>parent</sub> −
+            <span style="white-space:nowrap">(n<sub>L</sub>/n)G<sub>L</sub></span> −
+            <span style="white-space:nowrap">(n<sub>R</sub>/n)G<sub>R</sub></span></div>
           </div>
         </div>
       </div>
     </section>
 
     <section class="panel">
-      <div class="cap">5 · Class imbalance and the decision threshold</div>
-      <div class="row" style="grid-template-columns:1fr 58mm;">
-        <ul>
-          <li>Only <b>{pc(base)}</b> positive. Three remedies: resampling, class
-              weighting, moving the threshold.</li>
-          <li><b>Class weighting tested, rejected</b> — recall
-              {f4(cand['regularised']['recall'])} → {f4(cand['balanced']['recall'])} but
-              PR-AUC {f4(cand['regularised']['pr_auc'])} → {f4(cand['balanced']['pr_auc'])}:
-              it slides <i>along</i> the curve, it does not lift it.</li>
-          <li><b>Threshold chosen on validation</b> by maximising F1 → <b>{thr:.4f}</b>,
-              not 0.50. Validation F1 0.4396 → test {f4(test['f1'])}.</li>
-          <li><b>Protocol.</b> Stratified 60/20/20; statistics fitted on train only;
-              5 configurations compared on validation; test touched once.</li>
-        </ul>
-        <div>{CURVE}</div>
+      <div class="cap">3 · The prediction, step by step</div>
+      <div class="fx" style="grid-template-columns:1fr 1fr 1fr;gap:1.2mm">
+        <div class="cell">
+          <span class="t">1 · Each tree answers</span>
+          <div class="e"><span class="frac"><span class="num">n⁺ in leaf</span><span
+            class="den">n in leaf</span></span> = p<sub>t</sub>(x)</div>
+          <div class="n">Borrower x falls into one leaf. That tree reports the share of
+          that leaf's training borrowers who defaulted.</div>
+        </div>
+        <div class="cell" style="background:var(--yellow)">
+          <span class="t">2 · The forest averages</span>
+          <div class="e">p̂(x) = <span class="frac"><span class="num">1</span><span
+            class="den">T</span></span> Σ<sub>t=1</sub><sup>T</sup> p<sub>t</sub>(x)</div>
+          <div class="n">T = {trees}. The <b>mean of the {trees} proportions</b> — not a
+          majority vote of {trees} yes/no answers.</div>
+        </div>
+        <div class="cell" style="background:var(--pink)">
+          <span class="t">3 · Compare to the cut-off</span>
+          <div class="e">ŷ = 1 if p̂(x) ≥ τ</div>
+          <div class="n">τ = <b>{thr:.4f}</b>, fixed on validation data — not the
+          usual 0.50. Below τ → predict “no delinquency”.</div>
+        </div>
       </div>
+      <p class="mute" style="margin-top:1.2mm;font-size:7.1pt"><b>Worked example</b>
+      (the diagram above): the trees return 0.81, 0.12, … , 0.74. Their mean is p̂ = 0.43.
+      Since 0.43 ≥ {thr:.4f}, the borrower is flagged. The reported figure is that 0.43,
+      a <i>ranking score</i> — not a claim that 43 in 100 such borrowers default.</p>
     </section>
   </div>
 
   <!-- right column -->
   <div style="display:flex;flex-direction:column;gap:2mm">
     <section class="panel">
-      <div class="cap">3 · Evaluation metrics — from TP / FP / TN / FN</div>
+      <div class="cap">4 · Evaluation metrics — from TP / FP / TN / FN</div>
       <div class="fx">
         <div class="cell"><span class="t">Accuracy</span>
           <div class="e"><span class="frac"><span class="num">TP + TN</span><span class="den">N</span></span></div>
@@ -380,7 +408,7 @@ HTML = f"""<!doctype html>
     </section>
 
     <section class="panel">
-      <div class="cap">4 · Results — held-out test set ({dist['test']['total']:,} borrowers, scored once)</div>
+      <div class="cap">5 · Results — held-out test set ({dist['test']['total']:,} borrowers, scored once)</div>
       <div class="row" style="grid-template-columns:1fr 52mm;">
         <div>
           <div class="cmwrap">
@@ -414,8 +442,44 @@ HTML = f"""<!doctype html>
         </div>
       </div>
     </section>
+    <section class="panel">
+      <div class="cap">6 · Class imbalance and the decision threshold</div>
+      <div class="row" style="grid-template-columns:1fr 58mm;">
+        <ul>
+          <li>Only <b>{pc(base)}</b> positive. Three remedies: resampling, class
+              weighting, moving the threshold.</li>
+          <li><b>Class weighting tested, rejected</b> — recall
+              {f4(cand['regularised']['recall'])} → {f4(cand['balanced']['recall'])} but
+              PR-AUC {f4(cand['regularised']['pr_auc'])} → {f4(cand['balanced']['pr_auc'])}:
+              it slides <i>along</i> the curve, it does not lift it.</li>
+          <li><b>Threshold chosen on validation</b> by maximising F1 → <b>{thr:.4f}</b>,
+              not 0.50. Validation F1 0.4396 → test {f4(test['f1'])}.</li>
+          <li><b>Protocol.</b> Stratified 60/20/20; statistics fitted on train only;
+              5 configurations compared on validation; test touched once.</li>
+        </ul>
+        <div>{CURVE}</div>
+      </div>
+    </section>
   </div>
 </div>
+
+<section class="panel" style="margin-top:2mm">
+  <div class="cap">7 · The same arithmetic, running live &nbsp;·&nbsp;
+    <span style="font-weight:400">delinquency-risk.vercel.app</span></div>
+  <div class="row" style="grid-template-columns:1.25fr 1fr;gap:3mm;align-items:start">
+    <div>
+      <img src="{shot_result}" alt="Prediction result" class="shot"/>
+      <p class="mute" style="font-size:6.9pt;margin:.5mm 0 0"><b>Panel 3, executed.</b>
+      86% utilisation, four late episodes → the {trees} trees average to
+      <b>p̂ = 0.501</b>; 0.501 ≥ {thr:.4f}, so class 1.</p>
+    </div>
+    <div>
+      <img src="{shot_metrics}" alt="Live metrics" class="shot"/>
+      <p class="mute" style="font-size:6.9pt;margin:.5mm 0 0"><b>Panel 5, served.</b>
+      Read from the model file at start-up — nothing here is typed by hand.</p>
+    </div>
+  </div>
+</section>
 
 <div class="foot"><b>Limitations.</b> US data from ~2011 with no date column, so no
 out-of-time validation — present-day performance unknown. Probabilities are

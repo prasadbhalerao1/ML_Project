@@ -23,6 +23,14 @@ needed to run or deploy the application. Reference documentation lives in
 | File | |
 |---|---|
 | `print.pdf` | **The one to print.** 2 pages, A4 landscape: 4 slides on page 1, technical sheet on page 2. Print double-sided. |
+
+The technical sheet carries the prediction maths explicitly — the per-tree
+leaf proportion, the forest average over the 300 trees, and the threshold
+comparison — and ends with screenshots of the same arithmetic running on the
+deployed site. Terms are introduced in plain words first and named afterwards
+("300 copies of the data, drawn with replacement … this resampling is a
+*bootstrap*"), rather than used as labels on their own.
+
 | `Loan_Default_Prediction_Seminar.pptx` | The 4-slide deck, for presenting |
 | `Loan_Default_Prediction_Seminar.pdf` | Same deck as PDF |
 | `Technical_Sheet_onepage.pdf` | The technical sheet alone, A4 portrait |
