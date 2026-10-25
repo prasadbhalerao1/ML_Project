@@ -51,7 +51,7 @@ trees = meta["selected_configuration"]["params"]["n_estimators"]
 
 STUDENT = "Prasad Bhalerao"
 PRN = "RBT24CB026"
-GUIDE = "Prof. Neeraj Sathwale"
+GUIDE = "Prof. Neeraj Sathawane"
 SUBJECT = "Machine Learning"
 TITLE = "Loan Default Risk Prediction using Random Forest"
 APP_URL = "https://delinquency-risk.vercel.app"

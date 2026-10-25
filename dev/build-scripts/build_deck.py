@@ -291,7 +291,7 @@ for br in first._p.findall(qn("a:br")):
     first._p.remove(br)
 rows = [
     "Students Name and PRN no: Prasad Bhalerao (RBT24CB026)",
-    "Faculty: Prof. Neeraj Sathwale",
+    "Faculty: Prof. Neeraj Sathawane",
     "Subject: Machine Learning",
 ]
 for i, text in enumerate(rows):

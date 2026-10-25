@@ -245,7 +245,7 @@ HTML = f"""<!doctype html>
 
 <header>
   <h1>Loan Default Prediction using Random Forest <small>— Technical Sheet</small></h1>
-  <div class="by">Prasad Bhalerao (RBT24CB026) · Faculty: Prof. Neeraj Sathwale ·
+  <div class="by">Prasad Bhalerao (RBT24CB026) · Faculty: Prof. Neeraj Sathawane ·
     Subject: Machine Learning</div>
 </header>
 
